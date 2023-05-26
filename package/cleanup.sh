@@ -247,3 +247,4 @@ for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.
   done
 
 
+
