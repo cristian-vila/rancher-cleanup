@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: cleanup
-        image: rancher/rancher-cleanup:latest
+        image: crvila/rancher-cleanup:latest
         args: [ "force" ]
         imagePullPolicy: Always
       serviceAccountName: cleanup-service-account
