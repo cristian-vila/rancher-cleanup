@@ -7,7 +7,7 @@ RUN set -x \
  && curl -fsSLO https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_RELEASE}/bin/linux/amd64/kubectl \
  && chmod +x kubectl
 
-COPY cleanup.sh /usr/local/bin/cleanup.sh
-COPY verify.sh /usr/local/bin/verify.sh
-RUN chmod +x /usr/local/bin/cleanup.sh /usr/local/bin/verify.sh
-ENTRYPOINT ["/usr/local/bin/cleanup.sh"]
+COPY cleanup.sh /cleanup.sh
+COPY verify.sh /verify.sh
+RUN chmod +x /cleanup.sh /verify.sh
+ENTRYPOINT ["/cleanup.sh"]
