@@ -39,15 +39,6 @@ echo "=> Printing cluster info for confirmation"
 kubectl cluster-info
 kubectl get nodes -o wide
 
-if [ "$1" != "force" ]; then
-    echo "Do you want to continue (y/n)?"
-    read -r answer
-
-    if [ "$answer" != "y" ]; then
-        exit 1
-    fi
-fi
-
 kcpf()
 {
   FINALIZERS=$(kubectl get -o jsonpath="{.metadata.finalizers}" "$@")
@@ -58,17 +49,6 @@ kcpf()
   fi
 }
 
-kcdns()
-{
-  kubectl get namespace "$1"; then
-    kcpf namespace "$1"
-    FINALIZERS=$(kubectl get -o jsonpath="{.spec.finalizers}" namespace "$1")
-    if [ "x${FINALIZERS}" != "x" ]; then
-        echo "Finalizers before for namespace ${1}: ${FINALIZERS}"
-        kubectl get -o json namespace "$1" | tr -d "\n" | sed "s/\"finalizers\": \[[^]]\+\]/\"finalizers\": []/"   | kubectl replace --raw /api/v1/namespaces/$1/finalize -f -
-        echo "Finalizers after for namespace ${1}: $(kubectl get -o jsonpath="{.spec.finalizers}" namespace ${1})"
-    fi
-}
 
 printapiversion()
 {
@@ -232,8 +212,6 @@ for NS in $TOOLS_NAMESPACES $FLEET_NAMESPACES $CATTLE_NAMESPACES; do
 
   done
 
-  kcdns "$NS"
-done
 
 for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name | grep "^cluster-fleet"); do
   kubectl get "$(kubectl api-resources --namespaced=true --verbs=delete -o name| grep -v events\.events\.k8s\.io | grep -v ^events$ | tr "\n" "," | sed -e 's/,$//')" -n "$NS" --no-headers -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,KIND:.kind,APIVERSION:.apiVersion | while read -r NAME NAMESPACE KIND APIVERSION; do
@@ -241,8 +219,6 @@ for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.
 
   done
 
-  kcdns "$NS"
-done
 
 for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name | grep "^p-"); do
   kubectl get "$(kubectl api-resources --namespaced=true --verbs=delete -o name| grep -v events\.events\.k8s\.io | grep -v ^events$ | tr "\n" "," | sed -e 's/,$//')" -n "$NS" --no-headers -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,KIND:.kind,APIVERSION:.apiVersion | while read -r NAME NAMESPACE KIND APIVERSION; do
@@ -250,8 +226,6 @@ for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.
 
   done
 
-  kcdns "$NS"
-done
 
 for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name | grep "^c-"); do
   kubectl get "$(kubectl api-resources --namespaced=true --verbs=delete -o name| grep -v events\.events\.k8s\.io | grep -v ^events$ | tr "\n" "," | sed -e 's/,$//')" -n "$NS" --no-headers -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,KIND:.kind,APIVERSION:.apiVersion | while read -r NAME NAMESPACE KIND APIVERSION; do
@@ -259,17 +233,12 @@ for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.
 
   done
 
-  kcdns "$NS"
-done
-
 for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name | grep "^user-"); do
   kubectl get "$(kubectl api-resources --namespaced=true --verbs=delete -o name| grep -v events\.events\.k8s\.io | grep -v ^events$ | tr "\n" "," | sed -e 's/,$//')" -n "$NS" --no-headers -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,KIND:.kind,APIVERSION:.apiVersion | while read -r NAME NAMESPACE KIND APIVERSION; do
     kcpf -n "$NAMESPACE" "${KIND}.$(printapiversion "$APIVERSION")" "$NAME"
 
   done
 
-  kcdns "$NS"
-done
 
 for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.name | grep "^u-"); do
   kubectl get "$(kubectl api-resources --namespaced=true --verbs=delete -o name| grep -v events\.events\.k8s\.io | grep -v ^events$ | tr "\n" "," | sed -e 's/,$//')" -n "$NS" --no-headers -o custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace,KIND:.kind,APIVERSION:.apiVersion | while read -r NAME NAMESPACE KIND APIVERSION; do
@@ -277,6 +246,4 @@ for NS in $(kubectl get namespace --no-headers -o custom-columns=NAME:.metadata.
 
   done
 
-  kcdns "$NS"
-done
 
